@@ -1006,13 +1006,21 @@ pub fn get_app_name() -> String {
 }
 
 #[inline]
+pub fn get_app_name_id() -> String {
+    get_app_name()
+        .to_lowercase()
+        .replace(' ', "")
+        .replace('-', "")
+}
+
+#[inline]
 pub fn is_rustdesk() -> bool {
     hbb_common::config::APP_NAME.read().unwrap().eq("RustDesk")
 }
 
 #[inline]
 pub fn get_uri_prefix() -> String {
-    format!("{}://", get_app_name().to_lowercase())
+    format!("{}://", get_app_name_id())
 }
 
 #[cfg(target_os = "macos")]
