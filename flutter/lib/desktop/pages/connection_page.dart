@@ -312,6 +312,13 @@ class _ConnectionPageState extends State<ConnectionPage>
             Row(
               children: [
                 Flexible(child: _buildRemoteIDTextField(context)),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: _buildUltraDeskBrandMark(),
+                  ),
+                ),
               ],
             ).marginOnly(top: 22),
             SizedBox(height: 12),
@@ -611,5 +618,20 @@ class _ConnectionPageState extends State<ConnectionPage>
     );
     return Container(
         constraints: const BoxConstraints(maxWidth: 600), child: w);
+  }
+
+  Widget _buildUltraDeskBrandMark() {
+    return IgnorePointer(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 340, maxHeight: 148),
+        padding: const EdgeInsets.only(right: 18, top: 4),
+        child: Image.asset(
+          'assets/icon.png',
+          height: 124,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        ),
+      ),
+    );
   }
 }
