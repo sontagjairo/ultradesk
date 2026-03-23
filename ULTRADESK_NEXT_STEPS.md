@@ -22,6 +22,22 @@ Este fork ja tem a primeira camada de branding aplicada para Windows:
 2. embutir o seu servidor RustDesk no cliente
 3. gerar build Windows
 
+## Build no GitHub Actions
+
+O workflow criado foi:
+
+- [.github/workflows/ultradesk-windows.yml](C:\Users\Jairo\Documents\New%20project\rustdesk\.github\workflows\ultradesk-windows.yml)
+
+Para rodar:
+
+1. envie esse arquivo para o GitHub
+2. abra o repositório `sontagjairo/ultradesk`
+3. clique em `Actions`
+4. abra `Ultra Desk Windows Build`
+5. clique em `Run workflow`
+
+Quando terminar, baixe o artefato Windows gerado na execucao.
+
 ## Caminho mais leve para build
 
 Se a sua maquina nao estiver pronta para compilar RustDesk localmente, use GitHub Actions no seu fork do GitHub.
