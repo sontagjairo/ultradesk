@@ -28,6 +28,8 @@ O workflow criado foi:
 
 - [.github/workflows/ultradesk-windows.yml](C:\Users\Jairo\Documents\New%20project\rustdesk\.github\workflows\ultradesk-windows.yml)
 
+Ele foi simplificado para gerar apenas o build Windows do Ultra Desk.
+
 Para rodar:
 
 1. envie esse arquivo para o GitHub
@@ -36,7 +38,7 @@ Para rodar:
 4. abra `Ultra Desk Windows Build`
 5. clique em `Run workflow`
 
-Quando terminar, baixe o artefato Windows gerado na execucao.
+Quando terminar, baixe o artefato `ultradesk-windows-x64` gerado na execucao.
 
 ## Caminho mais leve para build
 
