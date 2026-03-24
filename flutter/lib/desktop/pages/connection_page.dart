@@ -198,6 +198,10 @@ class ConnectionPage extends StatefulWidget {
 /// State for the connection page.
 class _ConnectionPageState extends State<ConnectionPage>
     with SingleTickerProviderStateMixin, WindowListener {
+  static const _supportPhoneDisplay = '(51) 2850-0800';
+  static const _supportWhatsAppUrl =
+      'https://wa.me/555128500800?text=Preciso%20de%20suporte%20com%20o%20Ultra%20Desk';
+
   /// Controller for the id input bar.
   final _idController = IDTextEditingController();
 
@@ -621,15 +625,63 @@ class _ConnectionPageState extends State<ConnectionPage>
   }
 
   Widget _buildUltraDeskBrandMark() {
-    return IgnorePointer(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 340, maxHeight: 148),
-        padding: const EdgeInsets.only(right: 18, top: 4),
-        child: Image.asset(
-          'assets/icon.png',
-          height: 124,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 360, maxHeight: 160),
+      padding: const EdgeInsets.only(right: 18, top: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IgnorePointer(
+            child: Image.asset(
+              'assets/icon.png',
+              height: 118,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.background,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Theme.of(context).dividerColor),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Precisa de suporte?',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Fale com a Ultra pelo WhatsApp.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 34,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        await launchUrlString(_supportWhatsAppUrl);
+                      },
+                      icon: const Icon(Icons.support_agent, size: 18),
+                      label: const Text(_supportPhoneDisplay),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

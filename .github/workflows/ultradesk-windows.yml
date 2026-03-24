@@ -109,9 +109,10 @@ jobs:
       - name: Build Ultra Desk
         shell: powershell
         run: |
-          python .\build.py --portable --hwcodec --flutter --vram --skip-portable-pack
+          python .\build.py --portable --hwcodec --flutter --vram
           New-Item -ItemType Directory -Force -Path .\ultradesk-build | Out-Null
           Copy-Item -Recurse -Force .\flutter\build\windows\x64\runner\Release\* .\ultradesk-build\
+          Copy-Item -Force .\ultradesk-*-install.exe .\ultradesk-build\
 
       - name: Download topmost helper artifacts
         uses: actions/download-artifact@v4

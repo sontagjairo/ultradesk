@@ -1212,8 +1212,7 @@ fn get_valid_subkey() -> String {
 
 // Return install options other than InstallLocation.
 pub fn get_install_options() -> String {
-    let app_name = crate::get_app_name();
-    let subkey = format!(".{}", app_name.to_lowercase());
+    let subkey = format!(".{}", crate::get_app_name_id());
     let mut opts = HashMap::new();
 
     let desktop_shortcuts = get_reg_of_hkcr(&subkey, REG_NAME_INSTALL_DESKTOPSHORTCUTS);
@@ -1263,6 +1262,11 @@ fn get_default_install_path() -> String {
         }
     }
     format!("{}\\{}", pf, crate::get_app_name())
+}
+
+#[inline]
+fn get_app_exe_name() -> String {
+    format!("{}.exe", crate::get_app_name_id())
 }
 
 pub fn check_update_broker_process() -> ResultType<()> {
@@ -1320,7 +1324,7 @@ fn get_install_info_with_subkey(subkey: String) -> (String, String, String, Stri
         "%ProgramData%\\Microsoft\\Windows\\Start Menu\\Programs\\{}",
         crate::get_app_name()
     );
-    let exe = format!("{}\\{}.exe", path, crate::get_app_name());
+    let exe = format!("{}\\{}", path, get_app_exe_name());
     (subkey, path, start_menu, exe)
 }
 
@@ -1356,13 +1360,13 @@ pub fn rename_exe_cmd(src_exe: &str, path: &str) -> ResultType<String> {
         .ok_or(anyhow!("Can't get file name of {src_exe}"))?
         .to_string_lossy()
         .to_string();
-    let app_name = crate::get_app_name().to_lowercase();
-    if src_exe_filename.to_lowercase() == format!("{app_name}.exe") {
+    let app_exe = get_app_exe_name();
+    if src_exe_filename.to_lowercase() == app_exe {
         Ok("".to_owned())
     } else {
         Ok(format!(
             "
-        move /Y \"{path}\\{src_exe_filename}\" \"{path}\\{app_name}.exe\"
+        move /Y \"{path}\\{src_exe_filename}\" \"{path}\\{app_exe}\"
         ",
         ))
     }
@@ -1388,7 +1392,7 @@ fn get_after_install(
     reg_value_printer: Option<String>,
 ) -> String {
     let app_name = crate::get_app_name();
-    let ext = app_name.to_lowercase();
+    let ext = crate::get_app_name_id();
 
     // reg delete HKEY_CURRENT_USER\Software\Classes for
     // https://github.com/rustdesk/rustdesk/commit/f4bdfb6936ae4804fc8ab1cf560db192622ad01a
@@ -1654,7 +1658,8 @@ pub fn run_before_uninstall() -> ResultType<()> {
 
 fn get_before_uninstall(kill_self: bool) -> String {
     let app_name = crate::get_app_name();
-    let ext = app_name.to_lowercase();
+    let ext = crate::get_app_name_id();
+    let app_exe = get_app_exe_name();
     let filter = if kill_self {
         "".to_string()
     } else {
@@ -1666,12 +1671,13 @@ fn get_before_uninstall(kill_self: bool) -> String {
     sc stop {app_name}
     sc delete {app_name}
     taskkill /F /IM {broker_exe}
-    taskkill /F /IM {app_name}.exe{filter}
+    taskkill /F /IM {app_exe}{filter}
     reg delete HKEY_CLASSES_ROOT\\.{ext} /f
     reg delete HKEY_CLASSES_ROOT\\{ext} /f
     netsh advfirewall firewall delete rule name=\"{app_name} Service\"
     ",
         broker_exe = WIN_TOPMOST_INJECTED_PROCESS_EXE,
+        app_exe = app_exe,
     )
 }
 
@@ -2029,8 +2035,7 @@ pub fn update_install_option(k: &str, v: &str) -> ResultType<()> {
     if !is_installed() || !crate::is_server() {
         return Ok(());
     }
-    let app_name = crate::get_app_name();
-    let ext = app_name.to_lowercase();
+    let ext = crate::get_app_name_id();
     let cmds =
         format!("chcp 65001 && reg add HKEY_CLASSES_ROOT\\.{ext} /f /v {k} /t REG_SZ /d \"{v}\"");
     run_cmds(cmds, false, "update_install_option")?;
@@ -2932,9 +2937,10 @@ pub fn uninstall_service(show_new_window: bool, _: bool) -> bool {
     sc delete {app_name}
     if exist \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\{app_name} Tray.lnk\" del /f /q \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\{app_name} Tray.lnk\"
     taskkill /F /IM {broker_exe}
-    taskkill /F /IM {app_name}.exe{filter}
+    taskkill /F /IM {app_exe}{filter}
     ",
         app_name = crate::get_app_name(),
+        app_exe = get_app_exe_name(),
         broker_exe = WIN_TOPMOST_INJECTED_PROCESS_EXE,
     );
     if let Err(err) = run_cmds(cmds, false, "uninstall") {
@@ -2958,7 +2964,7 @@ pub fn install_service() -> bool {
     let cmds = format!(
         "
 chcp 65001
-taskkill /F /IM {app_name}.exe{filter}
+taskkill /F /IM {app_exe}{filter}
 cscript \"{tray_shortcut}\"
 copy /Y \"{tmp_path}\\{app_name} Tray.lnk\" \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\\"
 {import_config}
@@ -2966,6 +2972,7 @@ copy /Y \"{tmp_path}\\{app_name} Tray.lnk\" \"%PROGRAMDATA%\\Microsoft\\Windows\
 if exist \"{tray_shortcut}\" del /f /q \"{tray_shortcut}\"
     ",
         app_name = crate::get_app_name(),
+        app_exe = get_app_exe_name(),
         import_config = get_import_config(&exe),
         create_service = get_create_service(&exe),
     );
@@ -3162,7 +3169,7 @@ reg add {subkey} /f /v EstimatedSize /t REG_DWORD /d {size}
         "
 chcp 65001
 sc stop {app_name}
-taskkill /F /IM {app_name}.exe{filter}
+taskkill /F /IM {app_exe}{filter}
 {reg_cmd}
 {copy_exe}
 {rename_exe}
@@ -3173,6 +3180,7 @@ taskkill /F /IM {app_name}.exe{filter}
 {sleep}
     ",
         app_name = app_name,
+        app_exe = get_app_exe_name(),
         copy_exe = copy_exe_cmd(&src_exe, &exe, &path)?,
         rename_exe = rename_exe_cmd(&src_exe, &path)?,
         remove_meta_toml = remove_meta_toml_cmd(is_msi.unwrap_or(true), &path),
@@ -3704,7 +3712,7 @@ pub fn is_x64() -> bool {
 pub fn try_kill_rustdesk_main_window_process() -> ResultType<()> {
     // Kill rustdesk.exe without extra arg, should only be called by --server
     // We can find the exact process which occupies the ipc, see more from https://github.com/winsiderss/systeminformer
-    let app_name = crate::get_app_name().to_lowercase();
+    let app_name = crate::get_app_name_id();
     log::info!("try kill main window process");
     use hbb_common::sysinfo::System;
     let mut sys = System::new();
